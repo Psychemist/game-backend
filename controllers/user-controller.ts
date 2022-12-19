@@ -113,6 +113,73 @@ export class UserController {
         }
     };
 
+    loadUserList = async (req: express.Request, res: express.Response) => {
+        try {
+            console.log("enter loadUserList API")
+
+            let userResult = await this.userService.loadUserList();
+
+            console.log("all users: ", userResult)
+
+            res.status(200).json({
+                userResult
+            });
+        } catch (err) {
+            console.log(err);
+        }
+    };
+
+    loadFriendList = async (req: express.Request, res: express.Response) => {
+        try {
+            console.log("loadFriendList API");
+            const userId = parseInt(req.params.id)
+            console.log("my userId: ", userId)
+            const friendResult = await this.userService.getUserFriends(userId);
+            console.log("@@@@@@@@ friendResult: ", friendResult)
+            res.status(200).json({
+                friendResult
+            });
+
+        } catch (e) {
+            console.log(e);
+        }
+    };
+
+
+
+    updateFriendList = async (req: express.Request, res: express.Response) => {
+        try {
+            console.log("updateFriendList API");
+            const userId = parseInt(req.params.id)
+            const targetId = req.body.targetId;
+            console.log({ targetId, userId })
+
+            if (!targetId || !userId) {
+                console.log("invalid id")
+                return
+            }
+
+
+            const result = await this.userService.friendOrNot(
+                targetId,
+                userId
+            );
+            if (result.length > 0) {
+                res.status(400).json({
+                    message: "they are friend already",
+                });
+                return;
+            }
+
+
+            await this.userService.addFriend(targetId, userId);
+
+            res.json({ message: "add friend successfully" });
+            return;
+        } catch (e) {
+            console.log(e);
+        }
+    };
 
 
 }

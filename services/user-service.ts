@@ -106,4 +106,65 @@ export class UserService {
 
 
 
+    async loadUserList(): Promise<any> {
+        try {
+
+            let result = await this.knex.raw(/*sql*/
+                `
+                select * from users
+                order by score desc 
+                `
+            );
+
+            return result.rows
+
+        } catch (error) {
+            console.log(error)
+        }
+    }
+
+
+    async friendOrNot(targetUserID: number, userID: number): Promise<any> {
+        const results = await this.knex.raw(/*sql*/
+            `select * 
+          from friends 
+          where user_id = ? and user_friend_id = ?`,
+            [userID, targetUserID]
+        );
+        return results.rows;
+    }
+
+
+    async addFriend(targetId: number, userId: number): Promise<any> {
+        await this.knex.raw(/*sql*/
+            `insert into friends
+            (user_id, user_friend_id) 
+            values (?,?)`,
+            [userId, targetId]
+        );
+
+        await this.knex.raw(/*sql*/
+            `insert into friends
+          (user_id, user_friend_id) 
+          values (?,?)`,
+            [targetId, userId]
+        );
+    }
+
+    async getUserFriends(user_id: number): Promise<any> {
+        const results = await this.knex.raw(/*sql*/
+            `select friends.user_friend_id, users.name, users.score 
+            from friends 
+            inner join users 
+            on friends.user_friend_id = users.id 
+            where user_id = ? and friends.user_friend_id != user_id `,
+            [user_id]
+        );
+        return results.rows;
+    }
+
+
+
+
+
 }
